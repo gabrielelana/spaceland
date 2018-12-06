@@ -34,7 +34,14 @@ class LocateClassesCommand extends Command
             $io->error(sprintf('%s is not a root of a project', $rootDirectory));
             exit(1);
         }
-        $output->writeln($rootDirectory);
+
+        $finder = new Finder();
+        $finder->files()->name('*.php')->in($rootDirectory);
+        foreach ($finder as $file) {
+            if ($filePath = $file->getRealPath()) {
+                $output->writeln($filePath);
+            }
+        }
     }
 
     /**
