@@ -25,7 +25,35 @@ class LocateClassesCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        $io = new SymfonyStyle($input, $output);
+
         $rootDirectory = $input->getArgument('root');
-        $output->writeln('Hello');
+        $rootDirectory = is_array($rootDirectory) ? $rootDirectory[0] : $rootDirectory;
+        $rootDirectory = $this->locateRootDirectory($rootDirectory);
+        if (!$rootDirectory || !is_dir($rootDirectory)) {
+            $io->error(sprintf('%s is not a root of a project', $rootDirectory));
+            exit(1);
+        }
+        $output->writeln($rootDirectory);
+    }
+
+    /**
+     * Locate the root directory of the project
+     *
+     * @return string | null
+     */
+    private function locateRootDirectory(?string $startingFrom = null)
+    {
+        $startingFrom = $startingFrom ?? getenv('PWD') ?: '.';
+        if (!$startingFrom) {
+            return null;
+        }
+        if (is_file($startingFrom . '/composer.json')) {
+            if ($startingFrom = realpath($startingFrom)) {
+                return $startingFrom;
+            }
+            return null;
+        }
+        return $this->locateRootDirectory(dirname($startingFrom));
     }
 }
