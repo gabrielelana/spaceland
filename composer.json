@@ -1,0 +1,14 @@
+{
+    "name": "gabrielelana/spaceland",
+    "description": "List available classes with their namespaces in a project",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "gabriele.lana",
+            "email": "gabriele.lana@cleancode.it"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {}
+}
