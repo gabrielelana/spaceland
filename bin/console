@@ -1,0 +1,11 @@
+#!env php
+<?php
+
+require __DIR__ . '/../vendor/autoload.php';
+
+use Symfony\Component\Console\Application;
+use Spaceland\Command\LocateClassesCommand;
+
+$application = new Application();
+$application->add(new LocateClassesCommand());
+$application->run();

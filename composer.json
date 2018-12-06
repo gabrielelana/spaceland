@@ -9,6 +9,17 @@
             "email": "gabriele.lana@cleancode.it"
         }
     ],
+    "autoload": {
+        "psr-4": {
+            "Spaceland\\": "./src"
+        }
+    },
     "minimum-stability": "stable",
-    "require": {}
+    "require": {
+        "nikic/php-parser": "^4.1",
+        "symfony/console": "^4.2"
+    },
+    "require-dev": {
+        "phpstan/phpstan": "^0.10.6"
+    }
 }
