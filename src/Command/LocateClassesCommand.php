@@ -2,6 +2,10 @@
 
 namespace Spaceland\Command;
 
+use PhpParser\NodeTraverser;
+use PhpParser\NodeVisitor\NameResolver;
+use PhpParser\ParserFactory;
+use Spaceland\NodeVisitor\ClassCatcher;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -39,9 +43,31 @@ class LocateClassesCommand extends Command
         $finder->files()->name('*.php')->in($rootDirectory);
         foreach ($finder as $file) {
             if ($filePath = $file->getRealPath()) {
-                $output->writeln($filePath);
+                foreach ($this->locateClassesIn($filePath) as $class) {
+                    $output->writeln($class);
+                }
             }
         }
+    }
+
+    private function locateClassesIn(string $filePath) : array
+    {
+        $parser = (new ParserFactory)->create(ParserFactory::PREFER_PHP7);
+        $fileContent = file_get_contents($filePath);
+        if (!$fileContent) {
+            return [];
+        }
+        $ast = $parser->parse($fileContent);
+        if (!$ast) {
+            return [];
+        }
+        $nameResolver = new NameResolver;
+        $classCatcher = new ClassCatcher();
+        $nodeTraverser = new NodeTraverser;
+        $nodeTraverser->addVisitor($nameResolver);
+        $nodeTraverser->addVisitor($classCatcher);
+        $nodeTraverser->traverse($ast);
+        return $classCatcher->definedClasses();
     }
 
     /**
