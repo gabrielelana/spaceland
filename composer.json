@@ -1,6 +1,6 @@
 {
     "name": "gabrielelana/spaceland",
-    "description": "List available classes with their namespaces in a project",
+    "description": "List available classes/traits/functions in a project",
     "type": "library",
     "license": "MIT",
     "authors": [
