@@ -39,16 +39,28 @@ class LocateClassesCommand extends Command
     {
         $rootDirectory = $this->rootDirectory($input, $output);
         $cacheFile = $this->cacheFile($input, $output, $rootDirectory);
+        $cache = $this->loadCache($cacheFile);
 
         $finder = new Finder();
         $finder->files()->name('*.php')->in($rootDirectory);
         foreach ($finder as $file) {
-            if ($filePath = $file->getRealPath()) {
-                foreach ($this->locateClassesIn($filePath) as $class) {
-                    $output->writeln($class);
+            $fileRelativePath = $file->getRelativePath() . '/' . $file->getFilename();
+            $fileAbsolutePath = $file->getRealPath();
+            if ($fileAbsolutePath) {
+                $classesFound = [];
+                $fileLastModifiedAt = lstat($fileAbsolutePath)['mtime'];
+                if (isset($cache[$fileRelativePath]) && ($fileLastModifiedAt <= $cache[$fileRelativePath][0])) {
+                    $classesFound = $cache[$fileRelativePath][1];
+                } else {
+                    $classesFound = $this->locateClassesIn($fileAbsolutePath);
+                    $cache[$fileRelativePath] = [$fileLastModifiedAt, $classesFound];
+                }
+                foreach ($classesFound as $classFound) {
+                    $output->writeln($classFound);
                 }
             }
         }
+        $this->storeCache($cacheFile, $cache);
     }
 
     private function locateClassesIn(string $filePath) : array
@@ -69,6 +81,32 @@ class LocateClassesCommand extends Command
         $nodeTraverser->addVisitor($classCatcher);
         $nodeTraverser->traverse($ast);
         return $classCatcher->definedClasses();
+    }
+
+    private function loadCache(string $cacheFile)
+    {
+        $cacheContent = file_get_contents($cacheFile);
+        if (!$cacheContent) {
+            return [];
+        }
+        $cache = [];
+        foreach (explode(PHP_EOL, $cacheContent) as $line) {
+            [$file, $time, $classes] = explode(':', $line);
+            if (!empty($classes)) {
+                $classes = explode(',', $classes);
+            }
+            $cache[$file] = [$time, $classes];
+        }
+        return $cache;
+    }
+
+    private function storeCache(string $cacheFile, array $cache)
+    {
+        $cacheLines = [];
+        foreach ($cache as $file => $cached) {
+            $cacheLines[] = implode(':', [$file, $cached[0], implode(',', $cached[1])]);
+        }
+        file_put_contents($cacheFile, implode(PHP_EOL, $cacheLines));
     }
 
     private function cacheFile(InputInterface $input, OutputInterface $output, string $rootDirectory)
