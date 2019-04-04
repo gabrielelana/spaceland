@@ -5,6 +5,7 @@ namespace Spaceland\Command;
 use PhpParser\NodeTraverser;
 use PhpParser\NodeVisitor\NameResolver;
 use PhpParser\ParserFactory;
+use PhpParser\Error;
 use Spaceland\NodeVisitor\ClassCatcher;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -63,24 +64,28 @@ class LocateClassesCommand extends Command
         $this->storeCache($cacheFile, $cache);
     }
 
-    private function locateClassesIn(string $filePath) : array
+    private function locateClassesIn(string $filePath): array
     {
         $parser = (new ParserFactory)->create(ParserFactory::PREFER_PHP7);
         $fileContent = file_get_contents($filePath);
         if (!$fileContent) {
             return [];
         }
-        $ast = $parser->parse($fileContent);
-        if (!$ast) {
+        try {
+            $ast = $parser->parse($fileContent);
+            if (!$ast) {
+                return [];
+            }
+            $nameResolver = new NameResolver;
+            $classCatcher = new ClassCatcher();
+            $nodeTraverser = new NodeTraverser;
+            $nodeTraverser->addVisitor($nameResolver);
+            $nodeTraverser->addVisitor($classCatcher);
+            $nodeTraverser->traverse($ast);
+            return $classCatcher->definedClasses();
+        } catch(Error $e) {
             return [];
         }
-        $nameResolver = new NameResolver;
-        $classCatcher = new ClassCatcher();
-        $nodeTraverser = new NodeTraverser;
-        $nodeTraverser->addVisitor($nameResolver);
-        $nodeTraverser->addVisitor($classCatcher);
-        $nodeTraverser->traverse($ast);
-        return $classCatcher->definedClasses();
     }
 
     private function loadCache(string $cacheFile)
