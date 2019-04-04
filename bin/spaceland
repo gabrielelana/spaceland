@@ -1,7 +1,19 @@
 #!env php
 <?php
 
-require __DIR__ . '/../vendor/autoload.php';
+$composerAutoloadDirectory =  getcwd();
+if (!is_file($composerAutoloadDirectory . '/vendor/autoload.php')) {
+    $composerAutoloadDirectory =  __DIR__;
+    while (!is_file($composerAutoloadDirectory . '/vendor/autoload.php')) {
+        $composerAutoloadDirectory = dirname($composerAutoloadDirectory);
+    }
+    if (!is_file($composerAutoloadDirectory . '/vendor/autoload.php')) {
+        fprintf(STDERR, 'Unable to locate composer autoload file');
+        exit(1);
+    }
+}
+
+require_once $composerAutoloadDirectory . '/vendor/autoload.php';
 
 use Symfony\Component\Console\Application;
 use Spaceland\Command\LocateClassesCommand;
