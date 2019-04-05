@@ -1,6 +1,11 @@
 #!env php
 <?php
 
+// NOTE: some of the commands are demanding
+if (function_exists('xdebug_disable')) {
+    xdebug_disable();
+}
+
 $composerAutoloadDirectory =  getcwd();
 if (!is_file($composerAutoloadDirectory . '/vendor/autoload.php')) {
     $composerAutoloadDirectory =  __DIR__;
