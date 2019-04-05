@@ -2,6 +2,7 @@
 <?php
 
 // NOTE: some of the commands are demanding
+ini_set('xdebug.max_nesting_level', 1000);
 if (function_exists('xdebug_disable')) {
     xdebug_disable();
 }
