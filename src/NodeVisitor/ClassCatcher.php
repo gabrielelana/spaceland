@@ -5,6 +5,7 @@ namespace Spaceland\NodeVisitor;
 use PhpParser\Node;
 use PhpParser\NodeVisitorAbstract;
 use PhpParser\Node\Stmt\Class_;
+use PhpParser\Node\Stmt\Interface_;
 
 class ClassCatcher extends NodeVisitorAbstract
 {
@@ -21,6 +22,11 @@ class ClassCatcher extends NodeVisitorAbstract
     public function enterNode(Node $node)
     {
         if ($node instanceof Class_) {
+            if ($node->name) {
+                $this->classes[] = (string) $node->namespacedName;
+            }
+        }
+        if ($node instanceof Interface_) {
             if ($node->name) {
                 $this->classes[] = (string) $node->namespacedName;
             }
