@@ -6,6 +6,7 @@ use PhpParser\Node;
 use PhpParser\NodeVisitorAbstract;
 use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\Interface_;
+use PhpParser\Node\Stmt\Trait_;
 
 class ClassCatcher extends NodeVisitorAbstract
 {
@@ -27,6 +28,11 @@ class ClassCatcher extends NodeVisitorAbstract
             }
         }
         if ($node instanceof Interface_) {
+            if ($node->name) {
+                $this->classes[] = (string) $node->namespacedName;
+            }
+        }
+        if ($node instanceof Trait_) {
             if ($node->name) {
                 $this->classes[] = (string) $node->namespacedName;
             }
